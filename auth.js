@@ -47,7 +47,7 @@ const timer = setTimeout(() => {
     await page.waitForNavigation();
 
     const cookies = await page.cookies()
-    const vpnCookie = cookies.filter(c => c.name == "SVPNCOOKIE").map(c => c.value)
+    const vpnCookie = cookies.filter(c => c.name == "SVPNCOOKIE").map(c => "SVPNCOOKIE=" + c.value)
     console.log(vpnCookie.length ? vpnCookie[0] : "SVPNCOOKIE FAILURE")
 
     await browser.close();
