@@ -45,8 +45,11 @@ const timer = setTimeout(() => {
     await page.keyboard.press('Enter');
     await new Promise(r => setTimeout(r, 1000))
     await page.waitForNavigation();
+
     const cookies = await page.cookies()
-    console.log(cookies);
+    const vpnCookie = cookies.filter(c => c.name == "SVPNCOOKIE").map(c => c.value)
+    console.log(vpnCookie.length ? vpnCookie[0] : "SVPNCOOKIE FAILURE")
+
     await browser.close();
     clearTimeout(timer)
 })();
