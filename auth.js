@@ -15,7 +15,7 @@ const [gateway, username, password, secret] = flags.map(f => {
 })
 
 if (!(username && secret && password && gateway)) {
-    debugPrint("provide gateway username password secret with flags " + flags)
+    console.log("provide gateway username password secret with flags " + flags)
     process.exit(1)
 }
 
