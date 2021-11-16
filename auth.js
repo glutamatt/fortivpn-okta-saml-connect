@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 
-const timeoutSec = 10
+const timeoutSec = 15
 
 const debugPrint = process.argv.indexOf("--debug") > 0 ? (...args) => console.log(...args) : () => {}
 
@@ -25,32 +25,30 @@ const timer = setTimeout(() => {
 }, timeoutSec * 1000);
 
 (async () => {
-    debugPrint("Let's log")
     const browser = await puppeteer.launch({
         pipe: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
-    debugPrint("Opening page")
     const page = await browser.newPage();
-    debugPrint("Go to auth")
-    await page.goto('https://' + gateway + '/remote/saml/start');
-    debugPrint("Waiting form")
-    await page.waitForNavigation();
+    const pageUrl = 'https://' + gateway + '/remote/saml/start'
+    debugPrint("Go to page url", pageUrl)
+    await page.goto(pageUrl);
     debugPrint("Waiting for #okta-signin-username")
-    await page.waitForFunction('document.getElementById("okta-signin-username") === document.activeElement');
+    await page.waitForSelector('#okta-signin-username');
     await page.type('#okta-signin-username', username);
     await page.type('#okta-signin-password', password);
     await page.keyboard.press('Enter');
     debugPrint("Waiting for Secret question")
-    await page.waitForNavigation();
+    await page.waitForSelector('.password-with-toggle')
     await page.type('.password-with-toggle', secret);
     await page.keyboard.press('Enter');
-    await new Promise(r => setTimeout(r, 1000))
-    await page.waitForNavigation();
+    debugPrint("Waiting for fortinet redirection")
+    await page.waitForSelector('.fortinet-grid-icon')
 
+    debugPrint("Let's look for SVPNCOOKIE")
     const cookies = await page.cookies()
     const vpnCookie = cookies.filter(c => c.name == "SVPNCOOKIE").map(c => "SVPNCOOKIE=" + c.value)
-    console.log(vpnCookie.length ? vpnCookie[0] : "SVPNCOOKIE FAILURE")
+    console.log(vpnCookie.length ? vpnCookie[0] : "SVPNCOOKIE_COOKIE_NOT_FOUND")
 
     await browser.close();
     clearTimeout(timer)
