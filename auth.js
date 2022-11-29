@@ -35,7 +35,7 @@ const hr = "\n-------------------------------\n";
     debugPrint("Waiting for username password inputs")
     await waitThen('#okta-signin-username', (_, s) => page.type(s, username))
     await waitThen('#okta-signin-password', (_, s) => page.type(s, password))
-    await page.keyboard.press('Enter');
+    await waitThen('#okta-signin-password', s => s.press('Enter'))
     debugPrint("Selecting Google Authenticator")
     await waitThen('.factors-dropdown-wrap', s => s.evaluate(b => b.click()))
     await waitThen('.mfa-google-auth-30', s => s.evaluate(b => b.click()))
