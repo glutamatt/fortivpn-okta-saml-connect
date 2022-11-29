@@ -17,6 +17,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 # Puppeteer v10.0.0 works with Chromium 92.
 RUN yarn add puppeteer@10.0.0
+RUN yarn add otplib@12.0.1
 
 # Add user so we don't need --no-sandbox.
 RUN addgroup -S pptruser && adduser -S -g pptruser pptruser \
