@@ -11,34 +11,24 @@ const flags = ["-g", "-u", "-p", "-k"]
 
 const [gateway, username, password, totpkey] = flags.map(f => {
     const i = process.argv.indexOf(f)
-    if (i > 0) return process.argv[i + 1]
-    return false
+    return (i > 0) ? process.argv[i + 1] : false
 })
 
-if (!(username && totpkey && password && gateway)) {
-    console.log("provide gateway username password totpkey with flags " + flags)
-    process.exit(1)
-}
+const exit = (message) => { debugPrint(message); process.exit(1) };
 
-const exit = (debugContent) => {
-    debugPrint(debugContent)
-    debugPrint("Timeout: unable to log in seconds " + timeoutSec)
-    process.exit(1)
-}
+if (!(username && totpkey && password && gateway)) exit("provide gateway username password totpkey with flags " + flags)
+
+const hr = "\n-------------------------------\n";
 
 (async () => {
     const browser = await puppeteer.launch({ pipe: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] });
     const page = await browser.newPage();
-    const debugAllContent = () => page.$eval('*', (el) => el.innerText).then(i => {
-        const hr = "\n-------------------------------\n"
-        return "Current page content" + hr + i + hr
-    })
-
+    const debugAllContent = () => page.$eval('*', (el) => el.innerText).then(i => `Current page content${hr + i + hr}`)
     const waitThen = async (selector, cb) => {
         const selected = await page.waitForSelector(selector)
         return await cb(selected, selector)
     }
-    const timer = setTimeout(() => debugAllContent().then(exit), timeoutSec * 1000);
+    const timer = setTimeout(() => debugAllContent().then(c => `${c}\ntimeout: unable to log after ${timeoutSec} seconds`).then(exit), timeoutSec * 1000);
     const pageUrl = 'https://' + gateway + '/remote/saml/start'
     debugPrint("Go to page url", pageUrl)
     await page.goto(pageUrl);
