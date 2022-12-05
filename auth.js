@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 const otplib = require("otplib");
 
-const timeoutSec = 15
+const timeoutSec = 10
 
 const debugPrint = process.argv.indexOf("--debug") > 0 ? (...args) => console.log(...args) : () => { }
 
@@ -25,7 +25,7 @@ const hr = "\n-------------------------------\n";
     const page = await browser.newPage();
     const debugAllContent = () => page.$eval('*', (el) => el.innerText).then(i => `Current page content${hr + i + hr}`)
     const waitThen = async (selector, cb) => {
-        const selected = await page.waitForSelector(selector)
+        const selected = await page.waitForSelector(selector, { visible: true })
         return await cb(selected, selector)
     }
     const timer = setTimeout(() => debugAllContent().then(c => `${c}\ntimeout: unable to log after ${timeoutSec} seconds`).then(exit), timeoutSec * 1000);
@@ -37,8 +37,8 @@ const hr = "\n-------------------------------\n";
     await waitThen('#okta-signin-password', (_, s) => page.type(s, password))
     await waitThen('#okta-signin-submit', s => s.evaluate(b => b.click()))
     debugPrint("Selecting Google Authenticator")
-    await waitThen('.factors-dropdown-wrap', s => s.evaluate(b => b.click()))
-    await waitThen('.mfa-google-auth-30', s => s.evaluate(b => b.click()))
+    await waitThen('.dropdown.more-actions a', s => s.evaluate(b => b.click()))
+    await waitThen('a >.mfa-google-auth-30', s => s.evaluate(b => b.click()))
     debugPrint("Waiting for Google Authenticator input")
     await waitThen('.o-form-input-name-answer input[type="tel"][name="answer"]', (_, s) => page.type(s, otplib.authenticator.generate(totpkey)))
     await page.keyboard.press('Enter');
