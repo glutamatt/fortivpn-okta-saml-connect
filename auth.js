@@ -25,10 +25,11 @@ const hr = "\n-------------------------------\n";
     const page = await browser.newPage();
     const debugAllContent = () => page.$eval('*', (el) => el.innerText).then(i => `Current page content${hr + i + hr}`)
     const waitThen = async (selector, cb) => {
+        await page.screenshot({ path: `/tmp/pupeeter_okta_wait_start.png` });
         const selected = await page.waitForSelector(selector, { visible: true })
         return await cb(selected, selector)
     }
-    const timer = setTimeout(() => debugAllContent().then(c => `${c}\ntimeout: unable to log after ${timeoutSec} seconds`).then(exit), timeoutSec * 1000);
+    const timer = setTimeout(() => page.screenshot({ path: `/tmp/pupeeter_okta_timeout.png` }).then(debugAllContent).then(c => `${c}\ntimeout: unable to log after ${timeoutSec} seconds`).then(exit), timeoutSec * 1000);
     const pageUrl = 'https://' + gateway + '/remote/saml/start'
     debugPrint("Go to page url", pageUrl)
     await page.goto(pageUrl);
@@ -43,7 +44,7 @@ const hr = "\n-------------------------------\n";
     await waitThen('.o-form-input-name-answer input[type="tel"][name="answer"]', (_, s) => page.type(s, otplib.authenticator.generate(totpkey)))
     await page.keyboard.press('Enter');
     debugPrint("Waiting for fortinet redirection")
-    await page.waitForSelector('.fortinet-grid-icon')
+    await waitThen('.fortinet-grid-icon', () => { })
     debugPrint("Let's look for SVPNCOOKIE")
     const cookies = await page.cookies()
     const vpnCookie = cookies.filter(c => c.name == "SVPNCOOKIE").map(c => "SVPNCOOKIE=" + c.value)
