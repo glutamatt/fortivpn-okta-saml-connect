@@ -37,19 +37,21 @@ const hr = "\n-------------------------------\n";
     await waitThen('#okta-signin-username', (_, s) => page.type(s, username))
     await waitThen('#okta-signin-password', (_, s) => page.type(s, password))
     await waitThen('#okta-signin-submit', s => s.evaluate(b => b.click()))
-    debugPrint("Selecting Google Authenticator")
-    await waitThen('.dropdown.more-actions a', s => s.evaluate(b => b.click()))
-    await waitThen('a >.mfa-google-auth-30', s => s.evaluate(b => b.click()))
-    debugPrint("Waiting for Google Authenticator input")
-    await waitThen('.o-form-input-name-answer input[type="tel"][name="answer"]', (_, s) => page.type(s, otplib.authenticator.generate(totpkey)))
-    await page.keyboard.press('Enter');
+    const googleAuth = async () => { // 2FA step may be skipped
+        debugPrint("Selecting Google Authenticator")
+        await waitThen('.dropdown.more-actions a', s => s.evaluate(b => b.click()))
+        await waitThen('a >.mfa-google-auth-30', s => s.evaluate(b => b.click()))
+        debugPrint("Waiting for Google Authenticator input")
+        await waitThen('.o-form-input-name-answer input[type="tel"][name="answer"]', (_, s) => page.type(s, otplib.authenticator.generate(totpkey)))
+        page.keyboard.press('Enter');
+    }
+    googleAuth().catch(() => { })
     debugPrint("Waiting for fortinet redirection")
     await waitThen('.fortinet-grid-icon', () => { })
     debugPrint("Let's look for SVPNCOOKIE")
     const cookies = await page.cookies()
     const vpnCookie = cookies.filter(c => c.name == "SVPNCOOKIE").map(c => "SVPNCOOKIE=" + c.value)
     console.log(vpnCookie.length ? vpnCookie[0] : "SVPNCOOKIE_COOKIE_NOT_FOUND")
-
     await browser.close();
     clearTimeout(timer)
 })();
