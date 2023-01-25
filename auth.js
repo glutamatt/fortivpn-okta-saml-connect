@@ -33,10 +33,16 @@ const hr = "\n-------------------------------\n";
     const pageUrl = 'https://' + gateway + '/remote/saml/start'
     debugPrint("Go to page url", pageUrl)
     await page.goto(pageUrl);
-    debugPrint("Waiting for username password inputs")
-    await waitThen('#okta-signin-username', (_, s) => page.type(s, username))
-    await waitThen('#okta-signin-password', (_, s) => page.type(s, password))
-    await waitThen('#okta-signin-submit', s => s.evaluate(b => b.click()))
+
+    const userPass = async () => {
+        debugPrint("Waiting for username password inputs")
+        await waitThen('input[name="identifier"]', (_, s) => page.type(s, username))
+        await waitThen('input[name="credentials.passcode"][type="password"]', (_, s) => page.type(s, password))
+        await waitThen('[type="submit"]', s => s.evaluate(b => b.click()))
+    }
+
+    userPass().catch(() => { })
+
     const googleAuth = async () => { // 2FA step may be skipped
         debugPrint("Selecting Google Authenticator")
         await waitThen('.dropdown.more-actions a', s => s.evaluate(b => b.click()))
@@ -46,6 +52,7 @@ const hr = "\n-------------------------------\n";
         page.keyboard.press('Enter');
     }
     googleAuth().catch(() => { })
+
     debugPrint("Waiting for fortinet redirection")
     await waitThen('.fortinet-grid-icon', () => { })
     debugPrint("Let's look for SVPNCOOKIE")
