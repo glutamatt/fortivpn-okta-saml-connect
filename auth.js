@@ -31,6 +31,7 @@ const hr = "\n-------------------------------\n";
     }
     const timer = setTimeout(() => page.screenshot({ path: `/tmp/pupeeter_okta_timeout.png` }).then(debugAllContent).then(c => `${c}\ntimeout: unable to log after ${timeoutSec} seconds`).then(exit), timeoutSec * 1000);
     const pageUrl = 'https://' + gateway + '/remote/saml/start'
+
     debugPrint("Go to page url", pageUrl)
     await page.goto(pageUrl);
 
@@ -40,17 +41,15 @@ const hr = "\n-------------------------------\n";
         await waitThen('input[name="credentials.passcode"][type="password"]', (_, s) => page.type(s, password))
         await waitThen('[type="submit"]', s => s.evaluate(b => b.click()))
     }
-
-    userPass().catch(() => { })
-
     const googleAuth = async () => { // 2FA step may be skipped
         debugPrint("Selecting Google Authenticator")
-        await waitThen('.dropdown.more-actions a', s => s.evaluate(b => b.click()))
-        await waitThen('a >.mfa-google-auth-30', s => s.evaluate(b => b.click()))
+        await waitThen('div[data-se="google_otp"] a', s => s.evaluate(b => b.click()))
         debugPrint("Waiting for Google Authenticator input")
-        await waitThen('.o-form-input-name-answer input[type="tel"][name="answer"]', (_, s) => page.type(s, otplib.authenticator.generate(totpkey)))
+        await waitThen('input[type="text"][name="credentials.passcode"]', (_, s) => page.type(s, otplib.authenticator.generate(totpkey)))
         page.keyboard.press('Enter');
     }
+
+    userPass().catch(() => { })
     googleAuth().catch(() => { })
 
     debugPrint("Waiting for fortinet redirection")
