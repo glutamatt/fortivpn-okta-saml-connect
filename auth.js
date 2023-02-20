@@ -16,6 +16,8 @@ const [gateway, username, password, totpkey] = flags.map(f => {
 
 const exit = (message) => { debugPrint(message); process.exit(1) };
 
+if (process.argv.indexOf("--totp") > 0) { console.log(otplib.authenticator.generate(totpkey)); process.exit() }
+
 if (!(username && totpkey && password && gateway)) exit("provide gateway username password totpkey with flags " + flags)
 
 const hr = "\n-------------------------------\n";
