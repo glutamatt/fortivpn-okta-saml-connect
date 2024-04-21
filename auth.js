@@ -55,7 +55,7 @@ const hr = "\n-------------------------------\n";
     googleAuth().catch(() => { })
 
     debugPrint("Waiting for fortinet redirection")
-    await waitThen('.fortinet-grid-icon', () => { })
+    await waitThen('div.message-content span.ng-binding', () => { })
     debugPrint("Let's look for SVPNCOOKIE")
     const cookies = await page.cookies()
     const vpnCookie = cookies.filter(c => c.name == "SVPNCOOKIE").map(c => "SVPNCOOKIE=" + c.value)
