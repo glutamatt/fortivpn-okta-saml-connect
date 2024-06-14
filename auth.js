@@ -29,6 +29,7 @@ const hr = "\n-------------------------------\n";
     const waitThen = async (selector, cb) => {
         await page.screenshot({ path: `/tmp/pupeeter_okta_wait_start.png` });
         const selected = await page.waitForSelector(selector, { visible: true })
+        debugPrint("OK for " + selector)
         return await cb(selected, selector)
     }
     const timer = setTimeout(() => page.screenshot({ path: `/tmp/pupeeter_okta_timeout.png` }).then(debugAllContent).then(c => `${c}\ntimeout: unable to log after ${timeoutSec} seconds`).then(exit), timeoutSec * 1000);
@@ -45,7 +46,7 @@ const hr = "\n-------------------------------\n";
     }
     const googleAuth = async () => { // 2FA step may be skipped
         debugPrint("Selecting Google Authenticator")
-        await waitThen('div[data-se="google_otp"] a', s => s.evaluate(b => b.click()))
+        waitThen('div[data-se="google_otp"] a', s => s.evaluate(b => b.click())).catch((err) => debugPrint("safely catched error: " + err)) // 2FA selection may be skipped
         debugPrint("Waiting for Google Authenticator input")
         await waitThen('input[type="text"][name="credentials.passcode"]', (_, s) => page.type(s, otplib.authenticator.generate(totpkey)))
         page.keyboard.press('Enter');
